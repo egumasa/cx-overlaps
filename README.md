@@ -1,156 +1,227 @@
-# construction (cx) overlap codes
-This is a forked repo from [Philip Tillman's fluencysimilarity repo](https://bitbucket.org/philtillman/fluencysimilarity/src/master/). The original code is used to measure Jaccard and Cosine similarities between two sets of texts (i.e., overlapping unigrams, trigrams, etc.). We are extending their approach mainly in two ways:
+# cx-overlaps
 
-1) Adding measures of source text overlap, in addition to the comparison between performances.
-2) Adding more fine-grained measures of lingusitic constructions (which require more advanced Natural Language Processing component beyond simple ngrams).
+Measure construction (cx) overlap between spoken/written performances using Jaccard and Cosine similarity on word trigrams or unigrams.
 
-The original Tillman's code is used in their publication.
+This is an extended fork of [Philip Tillman's fluencysimilarity repo](https://bitbucket.org/philtillman/fluencysimilarity/src/master/). Extensions over the original:
 
-- de Jong, N., & Tillman, P. (2018). Chapter 2. Grammatical structures and oral fluency in immediate task repetition: Trigrams across repeated performances. In M. Bygate (Ed.), Task-Based Language Teaching (Vol. 11, pp. 43–73). John Benjamins Publishing Company. https://doi.org/10.1075/tblt.11.02jon
+1. **Compare-to-source mode** — measure each performance against a single model/source text, not only against each other.
+2. **Extraction pipeline** — `cx-extraction.py` converts raw `.txt` transcripts to `.cex` frequency files via a spaCy NLP pipeline.
+3. **Project-folder workflow** — self-contained project directories with a `config.yaml` that drives both pipeline steps.
 
-My colleague and I have reused the code in the following publication:
+## Publications
 
-- Suzuki, Y., Eguchi, M., & de Jong, N. (2022). Does the Reuse of Constructions Promote Fluency Development in Task Repetition? A Usage‐Based Perspective. TESOL Quarterly, tesq.3103. https://doi.org/10.1002/tesq.3103
+Original code:
 
-## TODO
-- [x] Refactor Tillman's code to allow a single, specified text file to compare to.
-  - [x] change ParseFileName
-  - [x] Add CompareToSource method.
-  - [ ] Refactor output file writing pipeline.
-  - [ ] More flexible study design and fileformat.
-- [x] Refactor Tillman's code to allow different formatting of input files.
-- [x] Simple construction (cx) extraction code using spaCy pipeline
-  - [x] Simple N-grams and POS-ngrams 
-  - [ ] More complex constituency-based constructions
-  - [ ] More complex Verb-argument constructions
+- de Jong, N., & Tillman, P. (2018). Chapter 2. Grammatical structures and oral fluency in immediate task repetition: Trigrams across repeated performances. In M. Bygate (Ed.), *Task-Based Language Teaching* (Vol. 11, pp. 43–73). John Benjamins. <https://doi.org/10.1075/tblt.11.02jon>
 
-# FluencySimilarity (Readme from Tillman's repo)
+Extended use:
 
-This repository contains scripts to compare textual similarity using trigrams and unigram (words) using two metrics 
-for similarity: Jaccard Similarity and Cosine Similarity of tf-idf vectors. These measures are used to compare
-unigrams and trigrams of words and/or parts of speech tokens. The idea is that we can measure the relative fluency
-of a pair of text using these measures.
+- Suzuki, Y., Eguchi, M., & de Jong, N. (2022). Does the Reuse of Constructions Promote Fluency Development in Task Repetition? A Usage-Based Perspective. *TESOL Quarterly*, tesq.3103. <https://doi.org/10.1002/tesq.3103>
 
-### How do I get set up? ###
+## Setup
 
-* Install [uv](https://docs.astral.sh/uv/getting-started/installation/).
-* Open a terminal and `cd` to the project root.
-* Run `uv sync` to create a virtual environment and install all dependencies (including the spaCy model).
-* Run `uv run python src/SimilarityAnalysis.py -h` to verify the setup.
-* On Windows run `SimilarityAnalysis.bat`; on macOS/Linux run `bash run_similarity.sh`.
-  Both output `result.csv` in the project root.
+1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/).
+2. `cd` to the project root and run:
 
-**Notes**
-
-* Requires Python 3.9+. uv manages the environment automatically — no manual venv or conda setup needed.
-* To run unit tests: `uv run python -m pytest tests/`
-
-To see help from the command line run the command
-
-`$ python "src\SimilarityAnalysis.py" -h`
-
-## Expected file format
-**File name format:** {condition}_{session}_{studentId}_{story}{delivery}_blah_blah.cex
-
-Ex) "NoTP_918_1_a1_10250_checked_AS-mlv_trans.str.fix.fxb.mor.pst_err-jms.chstr.coocr.cex"
-`condition = "NoTP", session = 1, sudentId = 918, story = "a", delivery = 1`
-
-Note that the story and delivery must be one character. If you want to change this behavior then
-see file `BaseFreqDictReader.py` method `ParseFileName()`
-
-**Contents** The contents of the file should contain lines of the form "    {freq}  {word1} {word2} {word3}"
-where freq is the frequency of the trigram and words 1 through 3 are the words in the trigram. For example,
-given the text `my_text = "This is my text. This is my new text."` the file would contain the trigrams:
-
-    2  . . this
-    2 . this is
-    2  this is my
-    1  is my text
-    1  my text .
-    2  text . .
-    1  is my new
-    1  my new text
-    1  new text .
-
-Note that we use the convention tbat the "." means the end and beginning of a sentence.
-
-**How we compare files:** Comparison are made between files with same {condition, studentId, delivery} unless the 
-"abc" flag is set in which
-the comparisons are made between files with same {condition, studentId, session}.
-
-### Examples
-
-There are two comparison approaches, each available in trigram and unigram variants.
-
-**Approach 1 — Between performances** (default): compares each student's performances against each other.
-
-Ex1a) Trigram similarity between performances. (`SimilarityAnalysis.bat` / `run_similarity.sh`)
-
-    uv run python src/SimilarityAnalysis.py -t trigram -d input/sample_data --begin-line 7 -oname result.csv
-
-Ex1b) Unigram similarity between performances. (`SimilarityAnalysisUnigram.bat` / `run_similarity_unigram.sh`)
-
-    uv run python src/SimilarityAnalysis.py -t unigram -d input/sample_data_unigram --begin-line 7 -oname result_unigram.csv
-
-**Approach 2 — Compare to source text**: compares each performance against a single source/model text file.
-
-Ex2a) Trigram similarity against a source text.
-
-    uv run python src/SimilarityAnalysis.py -t trigram -d input/sample_data --begin-line 7 --compare-to-source True -s path/to/source.txt -oname result_source.csv
-
-Ex2b) Unigram similarity against a source text.
-
-    uv run python src/SimilarityAnalysis.py -t unigram -d input/sample_data_unigram --begin-line 7 --compare-to-source True -s path/to/source.txt -oname result_source_unigram.csv
-
-### Documentation of SimilarityAnalysis
-
-To understand how Similarity in SimilarityAnalysis is computed one should start by running and inspecting the unit 
-tests in SimpleTests.py. These tests should give a basic understanding of what this core of the code does. The other 
-code in this  is mainly for performance and unpacking the data from the form it is in so that we can compute the 
- imilarity (i.e., plumbing)
-
-The raw methods that compute the compute the Jaccard Similarity and Cosine Similarity are in
-IRSystemHelper.py. IRSystem.py and IRSystemSimple.py are wrapper classes around methods of this class that adds 
-caching for performance and methods to read files from disk. If you want to understand how these basic methods 
-can be used, look at SimpleTests.py. Here there are unit tests that set up very simple test documents and compute 
-all the desired similarities.
-
-### Who do I talk to? ###
-
-* admin: Philip Tillman <phil.tillman@gmail.com>
-* researcher: Nel de Jong <c.a.m.dejong@uva.nl>
-
-### Publishing using our code ###
-Please cite our paper if you use this code:
-
-de Jong, N., & Tillman, P. C. (2018). Grammatical structures and oral fluency in immediate task repetition: 
-trigrams across repeated performances. In M. Bygate (Ed.), Learning language through task repetition (pp. 43-73). 
-Amsterdam: John Benjamins.
-
+```bash
+uv sync
 ```
-@article{deJongTillman2018,
-  title={ Grammatical structures and oral fluency in immediate task repetition: trigrams across repeated performances},
-  author={de Jong, N., & Tillman, P. C.},
-  journal={Learning language through task repetition},
-  editor={M. Bygate},
+
+This creates a virtual environment and installs all dependencies, including the spaCy `en_core_web_trf` model.
+
+1. Verify:
+
+```bash
+uv run python src/SimilarityAnalysis.py -h
+```
+
+Requires Python 3.9+.
+
+## Quick start — project-based workflow
+
+The recommended way to run an analysis is with a **project folder**. Each project is self-contained:
+
+```text
+project/
+  MY_PROJECT/
+    config.yaml          ← all settings for both pipeline steps
+    input/               ← drop raw .txt transcripts here
+    intermediate/
+      trigram/           ← trigram .cex files (generated automatically)
+      unigram/           ← unigram .cex files (generated automatically)
+    output/              ← result CSV written here
+```
+
+**Steps:**
+
+1. Copy `project/PROJECT1` as a starting point, or create a new folder with the same structure.
+2. Edit `config.yaml` (see reference table below).
+3. Drop your raw `.txt` transcript files into `input/`.
+4. Run the full pipeline:
+
+```bash
+bash run_project.sh project/MY_PROJECT
+```
+
+This runs extraction (`.txt` → `.cex`) then similarity analysis (`.cex` → `output/result.csv`) in one step.
+
+### config.yaml reference
+
+| Key | Default | Description |
+| --- | ------- | ----------- |
+| `rawtext_directory` | `input` | Directory of raw `.txt` transcript files |
+| `trigram_directory` | `intermediate/trigram` | Output directory for trigram `.cex` files |
+| `unigram_directory` | `intermediate/unigram` | Output directory for unigram `.cex` files |
+| `analysis_type` | `trigram` | `trigram` or `unigram` |
+| `begin_line` | `6` | Header lines to skip in `.cex` files (cx-extraction writes 6 `#` lines) |
+| `output_name` | `output/result.csv` | Output CSV path (relative to project folder) |
+| `output_directory` | `null` | Optional directory for per-pair token-intersection files |
+| `source_text_path` | `null` | Path to model/source `.cex` file — enables compare-to-source mode |
+| `compare_to_source` | `false` | If `true`, compare each file to the source text instead of to each other |
+| `compare_abc` | `false` | Compare across a/b/c conditions instead of deliveries |
+| `use_semi_colon_delimiters` | `false` | Use `;` instead of `,` in output |
+
+CLI flags passed alongside `--project` override the corresponding config values.
+
+## Pipeline
+
+### Step 1 — Extraction (`src/cx-extraction.py`)
+
+Reads raw `.txt` transcripts, tokenises them with spaCy (`en_core_web_trf`), and writes trigram and unigram frequency files in `.cex` format to `intermediate/`.
+
+```bash
+uv run python src/cx-extraction.py --project project/MY_PROJECT
+```
+
+Direct CLI flags (bypass project mode):
+
+| Flag | Description |
+| ---- | ----------- |
+| `--input-dir` | Directory of raw `.txt` files |
+| `--trigram-dir` | Output directory for trigram `.cex` files |
+| `--unigram-dir` | Output directory for unigram `.cex` files |
+
+### Step 2 — Similarity analysis (`src/SimilarityAnalysis.py`)
+
+Reads `.cex` files and computes Jaccard and Cosine similarities. Two comparison modes:
+
+- **Between-performances** (default): each student's repeated performances are compared against each other.
+- **Compare-to-source** (`compare_to_source: true`): each performance is compared against a single model/source text.
+
+```bash
+uv run python src/SimilarityAnalysis.py --project project/MY_PROJECT
+```
+
+Key CLI flags (all overridable via `config.yaml`):
+
+| Flag | Description |
+| ---- | ----------- |
+| `-t / --type` | `trigram` or `unigram` |
+| `-d / --directory` | Directory of `.cex` input files |
+| `--begin-line` | Number of header lines to skip |
+| `--compare-to-source` | Enable source-text comparison mode |
+| `-s / --source-text-path` | Path to source `.cex` file |
+| `-oname / --output-name` | Output CSV filename |
+| `-o / --output-directory` | Directory for token-intersection files |
+| `-abc` | Compare across a/b/c conditions |
+
+## File formats
+
+### Input transcripts
+
+Plain `.txt` files — no special format required. The extractor handles whitespace normalisation, sentence tokenisation via spaCy, and punctuation filtering.
+
+### `.cex` intermediate format
+
+Each `.cex` file contains one n-gram per line: `{frequency} {token1} {token2} ... {tokenN}`, preceded by header lines (6 `#` lines when generated by `cx-extraction.py`).
+
+Example trigram file for the text *"This is my text. This is my new text."*:
+
+```text
+#
+#
+#
+#
+#
+#
+2 this is my
+2 is my text
+1 is my new
+1 my new text
+```
+
+### File naming convention
+
+The analysis groups files by participant. `.cex` filenames must follow this pattern:
+
+```text
+{condition}_{session}_{studentId}_{story}{delivery}_...suffix....cex
+```
+
+Example: `NoTP_1_918_a1_checked.cex`
+→ `condition=NoTP`, `session=1`, `studentId=918`, `story=a`, `delivery=1`
+
+Story and delivery must each be a single character. To change this, see `ParseFileName()` in [src/BaseFreqDictReader.py](src/BaseFreqDictReader.py).
+
+**Grouping logic:**
+
+- Default: files with the same `{condition, studentId, delivery}` are compared across sessions.
+- With `-abc` flag: files with the same `{condition, studentId, session}` are compared across a/b/c deliveries.
+
+### Output CSV
+
+Columns: `Condition`, `StudentId`, `Session`, `Measure`, `Score`
+
+`Session` encodes the pair of sessions compared (e.g. `1_2`). `Measure` is `JaccardSimilarity` or `CosineSimilarity`.
+
+## Tests
+
+```bash
+uv run python -m pytest tests/
+```
+
+## Code architecture
+
+| File | Purpose |
+| ---- | ------- |
+| `src/cx-extraction.py` | Extract n-gram `.cex` files from raw transcripts using spaCy |
+| `src/SimilarityAnalysis.py` | CLI entry point — orchestrates file reading, similarity computation, and CSV output |
+| `src/BaseFreqDictReader.py` | Reads `.cex` files, parses filenames, groups files by student, computes per-pair comparisons |
+| `src/IRSystem.py` | Wrapper around similarity methods with caching and disk I/O |
+| `src/IRSystemHelper.py` | Core Jaccard and Cosine similarity implementations |
+| `src/IRSystemSimple.py` | Simplified wrapper used in unit tests |
+
+To understand the similarity calculations, start with the unit tests in [tests/TestSimple.py](tests/TestSimple.py) and the core methods in [src/IRSystemHelper.py](src/IRSystemHelper.py).
+
+## Citation
+
+If you use this code, please cite:
+
+```bibtex
+@incollection{deJongTillman2018,
+  title={Grammatical structures and oral fluency in immediate task repetition: trigrams across repeated performances},
+  author={de Jong, N. and Tillman, P. C.},
+  booktitle={Task-Based Language Teaching},
+  editor={Bygate, M.},
+  volume={11},
+  pages={43--73},
   publisher={John Benjamins},
-  location={Amsterdam},
-  year={2018}
+  address={Amsterdam},
+  year={2018},
+  doi={10.1075/tblt.11.02jon}
+}
+
+@article{SuzukiEguchiDeJong2022,
+  title={Does the Reuse of Constructions Promote Fluency Development in Task Repetition? A Usage-Based Perspective},
+  author={Suzuki, Y. and Eguchi, M. and de Jong, N.},
+  journal={TESOL Quarterly},
+  year={2022},
+  doi={10.1002/tesq.3103}
 }
 ```
 
-### License ###
-Copyright 2019 Philip Tillman
+## License
 
-Licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.html) (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Copyright 2019 Philip Tillman; extensions copyright 2022-2026 Masaki Eguchi
 
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+Licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.html).

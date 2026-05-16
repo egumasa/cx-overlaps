@@ -7,6 +7,7 @@ requires-python = ">=3.9"
 dependencies = [
     "nltk",
     "numpy",
+    "pyyaml",
     "spacy[transformers]",
     "corpus-toolkit",
     "streamlit",
