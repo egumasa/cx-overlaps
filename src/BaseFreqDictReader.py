@@ -24,18 +24,11 @@ class BaseFreqDictReader(FreqDictReader):
                 condition2, studentId2, session2, story2, delivery2 = self.ParseFilePath(
                     filePath2)
                 if (not self.compare_abc):
-                    if condition1 != condition2 and studentId1 != studentId2 and session1 != session2 and story1 != story2:
-                        raise NameError("these should all be the same.")
-                    if delivery1 < delivery2:
-                        comparison = str.format("{3}_{0}{1}_{0}{2}", story1,
-                                                delivery1, delivery2,
-                                                simMethodName)
-                    else:
-                        comparison = str.format("{3}_{0}{2}_{0}{1}", story1,
-                                                delivery1, delivery2,
-                                                simMethodName)
+                    # session-based: files differ by session, key identifies the session pair
+                    s1, s2 = sorted([session1, session2])
+                    comparison = f"{simMethodName}_{s1}_{s2}"
                 else:
-                    if condition1 != condition2 and studentId1 != studentId2 and delivery1 != delivery2:
+                    if condition1 != condition2 or studentId1 != studentId2 or delivery1 != delivery2:
                         raise NameError("these should all be the same.")
                     if (story1 < story2):
                         comparison = str.format("{4}_{0}{1}_{2}{3}", story1,
@@ -134,8 +127,8 @@ class BaseFreqDictReader(FreqDictReader):
                 studentKey = str.format("{0}_{1}_{2}", condition, studentId,
                                         delivery)  #comparing the same topic
             else:
-                studentKey = str.format("{0}_{1}_{2}", condition, studentId,
-                                        session)  #comparing by session
+                studentKey = str.format("{0}_{1}", condition,
+                                        studentId)  #group all sessions per student
             if studentKey not in filesGroupedByStudents:
                 filesGroupedByStudents[studentKey] = []
             filesGroupedByStudents[studentKey].append(
@@ -148,7 +141,7 @@ class BaseFreqDictReader(FreqDictReader):
         return self.ParseFileName(fileName)
 
     def ParseFileName(self, fileName):  #consider changing this!!
-        '''filename format 
+        '''filename format: CONDITION_STUDENTID_SESSION[_STORY+DELIVERY].cex
         '''
         condition, studentId, session, delivery, story = 'NA', 'NA', 'NA', 'NA', 'NA'
         fileNameAsArray = fileName.split('_')
@@ -159,7 +152,7 @@ class BaseFreqDictReader(FreqDictReader):
         if len(fileNameAsArray) >= 3:
             condition = fileNameAsArray[0]
             studentId = int(fileNameAsArray[1])
-            session = fileNameAsArray[2]
+            session = fileNameAsArray[2].split('.')[0]  # strip extension if present
         return condition, studentId, session, story, delivery
 
 

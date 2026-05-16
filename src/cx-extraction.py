@@ -2,71 +2,44 @@
 # -*- coding: utf-8 -*-
 '''
 This program extracts constructions for overlap calculation.
-
-Plan:
-
-
 '''
 import ntpath
 import glob
+import os
 import re
 import spacy
-from corpus_toolkit import corpus_tools as ct
-from streamlit import stop
 
 __author__ = 'Masaki Eguchi'
 
 nlp = spacy.load("en_core_web_trf")
 
+TRIGRAM_DIR = 'input/trigram/'
+UNIGRAM_DIR = 'input/unigram/'
+
 
 def preprocess(text):
-    # spaces
     text = text.strip()
     text = re.sub("\n+", "\n", text)
     text = re.sub("(-\n)+", " ", text)
     text = re.sub("\t+", " ", text)
-    text = re.sub("\s+", " ", text)
+    text = re.sub(r"\s+", " ", text)
     text = text.replace(";", ".")
     text = text.replace(":", ".")
-    #while "-\n" in text:
-    #	text = text.replace("-\n", " ")
-    #while "\t" in text:
-    #	text = text.replace("\t", " ")
-    #while "  " in text:
-    #	text = text.replace("  ", " ")
-    #while ";" in text:
-    #	text = text.replace(";", ".")
-    #while ":" in text:
-    #	text = text.replace(":", ".")
-    return (text)
+    return text
 
 
-def ngrammer(tokenized, number, connect="__", stop_list=['.', ',', '!', '?']):
-    ngram_list = []  #empty list for ngrams
+def ngrammer(tokenized, number, connect=" ", stop_list=['.', ',', '!', '?']):
+    ngram_list = []
     last_index = len(tokenized) - 1
-    #this will let us know what the last index number is
     for i, token in enumerate(tokenized):
-        #enumerate allows us to get the index number for each iteration (this is i) and the item
-        if i + number > last_index:  #if the next index doesn't exist (because it is larger than the last index)
+        if i + number > last_index:
             continue
-        else:
-            ngram = tokenized[i:i + number]
-            #the ngram will start at the current word, and continue until the nth word
-            ngram_string = connect.join(ngram)
-            #turn list of words into an n-gram string
-            if any(s in ngram_string for s in
-                   stop_list):  #Check if a stop list word is in the string.
-                continue
-            else:
-                ngram_list.append(ngram_string)  #add string to ngram_list
-
-    return (ngram_list)  #add ngram_list to master list
-
-
-def simple_tokenizer(text, split_token=" "):
-
-    tok_list = text.split(split_token)
-    return tok_list
+        ngram = tokenized[i:i + number]
+        ngram_string = connect.join(ngram)
+        if any(s in ngram_string for s in stop_list):
+            continue
+        ngram_list.append(ngram_string)
+    return ngram_list
 
 
 def tokenizer(text, sent_bound=True, lemmatize=False, pos=False):
@@ -90,39 +63,50 @@ def tokenizer(text, sent_bound=True, lemmatize=False, pos=False):
     return tok_list
 
 
-def counter(items: list):
+def counter(items):
     res = {}
     for item in items:
-        if item not in res:
-            res[item] = 1
-        else:
-            res[item] += 1
+        res[item] = res.get(item, 0) + 1
     return res
 
 
-def dict_to_cex(dict, output_dir, s_filename, header):
-    with open(output_dir + s_filename + '.cex', 'w') as outf:
+def dict_to_cex(freq_dict, output_dir, stem, header):
+    os.makedirs(output_dir, exist_ok=True)
+    out_path = os.path.join(output_dir, stem + '.cex')
+    with open(out_path, 'w') as outf:
         outf.write(header)
-
-        for item, freq in dict.items():
-            outf.write(' '.join([str(freq), item]))
-            outf.write("\n")
+        for item, freq in freq_dict.items():
+            outf.write(f"{freq} {item}\n")
 
 
-def text_to_ngrams(filename, length=1):
-    s_fname = ntpath.basename(filename)
+def stem_filename(filename):
+    """Remove _TextGrid.txt (case-insensitive) or bare .txt extension."""
+    s = ntpath.basename(filename)
+    s = re.sub(r'_[Tt]extgrid\.txt$', '', s)
+    if s.endswith('.txt'):
+        s = s[:-4]
+    return s
 
+
+def text_to_ngrams(filename, length, output_dir):
+    stem = stem_filename(filename)
     text = open(filename, 'r').read()
     text = preprocess(text)
-    #tok = simple_tokenizer(text)
-    tok = tokenizer(text, sent_bound=False, lemmatize=False, pos=False)
-    ngrams = ngrammer(tok[0], length, connect=" ")
+    tok = tokenizer(text, sent_bound=False)
+    if not tok or not tok[0]:
+        print(f"  WARNING: no tokens found in {filename}")
+        return
+    ngrams = ngrammer(tok[0], length)
     ngram_dict = counter(ngrams)
-    dict_to_cex(ngram_dict, 'input/trigram/', s_fname, "#\n#\n#\n#\n#\n#\n")
+    header = "#\n" * 6
+    dict_to_cex(ngram_dict, output_dir, stem, header)
 
 
-# if __name__ == "__main__":
-filename = glob.glob('rawtexts/*.txt')
-
-for file in filename:
-    text_to_ngrams(file, length=3)
+if __name__ == "__main__":
+    files = sorted(glob.glob('input/rawtexts/*.txt'))
+    print(f"Found {len(files)} files.")
+    for i, file in enumerate(files):
+        print(f"[{i+1}/{len(files)}] {file}")
+        text_to_ngrams(file, length=3, output_dir=TRIGRAM_DIR)
+        text_to_ngrams(file, length=1, output_dir=UNIGRAM_DIR)
+    print("Done.")
