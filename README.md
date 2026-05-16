@@ -2,7 +2,7 @@
 
 Measure construction (cx) overlap between spoken/written performances using Jaccard and Cosine similarity on word trigrams or unigrams.
 
-This is an extended fork of [Philip Tillman's fluencysimilarity repo](https://bitbucket.org/philtillman/fluencysimilarity/src/master/). Extensions over the original:
+This is an extended fork of a prior fluencysimilarity repository. Extensions over the original:
 
 1. **Compare-to-source mode** — measure each performance against a single model/source text, not only against each other.
 2. **Extraction pipeline** — `cx-extraction.py` converts raw `.txt` transcripts to `.cex` frequency files via a spaCy NLP pipeline.
@@ -12,11 +12,11 @@ This is an extended fork of [Philip Tillman's fluencysimilarity repo](https://bi
 
 Original code:
 
-- de Jong, N., & Tillman, P. (2018). Chapter 2. Grammatical structures and oral fluency in immediate task repetition: Trigrams across repeated performances. In M. Bygate (Ed.), *Task-Based Language Teaching* (Vol. 11, pp. 43–73). John Benjamins. <https://doi.org/10.1075/tblt.11.02jon>
+- [Author(s) blinded for review]. (2018). Grammatical structures and oral fluency in immediate task repetition: Trigrams across repeated performances. In M. Bygate (Ed.), *Task-Based Language Teaching* (Vol. 11, pp. 43–73). John Benjamins.
 
 Extended use:
 
-- Suzuki, Y., Eguchi, M., & de Jong, N. (2022). Does the Reuse of Constructions Promote Fluency Development in Task Repetition? A Usage-Based Perspective. *TESOL Quarterly*, tesq.3103. <https://doi.org/10.1002/tesq.3103>
+- [Author(s) blinded for review]. (2022). Does the Reuse of Constructions Promote Fluency Development in Task Repetition? A Usage-Based Perspective. *TESOL Quarterly*.
 
 ## Setup
 
@@ -195,33 +195,10 @@ To understand the similarity calculations, start with the unit tests in [tests/T
 
 ## Citation
 
-If you use this code, please cite:
-
-```bibtex
-@incollection{deJongTillman2018,
-  title={Grammatical structures and oral fluency in immediate task repetition: trigrams across repeated performances},
-  author={de Jong, N. and Tillman, P. C.},
-  booktitle={Task-Based Language Teaching},
-  editor={Bygate, M.},
-  volume={11},
-  pages={43--73},
-  publisher={John Benjamins},
-  address={Amsterdam},
-  year={2018},
-  doi={10.1075/tblt.11.02jon}
-}
-
-@article{SuzukiEguchiDeJong2022,
-  title={Does the Reuse of Constructions Promote Fluency Development in Task Repetition? A Usage-Based Perspective},
-  author={Suzuki, Y. and Eguchi, M. and de Jong, N.},
-  journal={TESOL Quarterly},
-  year={2022},
-  doi={10.1002/tesq.3103}
-}
-```
+If you use this code, please cite: [blinded for review]
 
 ## License
 
-Copyright 2019 Philip Tillman; extensions copyright 2022-2026 Masaki Eguchi
+Copyright [blinded for review]
 
 Licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.html).

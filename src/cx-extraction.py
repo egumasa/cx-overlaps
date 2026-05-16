@@ -13,7 +13,7 @@ from pathlib import Path
 
 import spacy
 
-__author__ = 'Masaki Eguchi'
+__author__ = '[blinded for review]'
 
 nlp = spacy.load("en_core_web_trf")
 

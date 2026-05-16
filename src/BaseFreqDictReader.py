@@ -1,7 +1,7 @@
 import os, sys, collections, ntpath
 from IRSystem import FreqDictReader
 
-__author__ = 'Phil'
+__author__ = '[blinded for review]'
 
 
 class BaseFreqDictReader(FreqDictReader):
