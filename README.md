@@ -32,21 +32,18 @@ unigrams and trigrams of words and/or parts of speech tokens. The idea is that w
 of a pair of text using these measures.
 
 ### How do I get set up? ###
-* Install [Anaconda3](https://www.anaconda.com/distribution/#download-section).
-* Open a command prompt
-* Run `$ cd "C:\Path\to\project"` and replace the path with the correct one.
-* Run `$ pip install -r requirements.txt`
-* Run `$ SimilarityAnalysis.bat`. This runs the script on some sample data provided in the folder sample_data.
-  Which runs the command `$ python "src\SimilarityAnalysis.py" -t trigram -d "sample_data" --begin-line 7 > "result.csv"`
-* Running `$ SimilarityAnalysis.bat` will output a file `result.csv` in root of the repository.
-* To list options for the scripts use the command `$ python src\SimilarityAnalysis.py --help`
+
+* Install [uv](https://docs.astral.sh/uv/getting-started/installation/).
+* Open a terminal and `cd` to the project root.
+* Run `uv sync` to create a virtual environment and install all dependencies (including the spaCy model).
+* Run `uv run python src/SimilarityAnalysis.py -h` to verify the setup.
+* On Windows run `SimilarityAnalysis.bat`; on macOS/Linux run `bash run_similarity.sh`.
+  Both output `result.csv` in the project root.
 
 **Notes**
 
-* Dependencies: Uses interpreter version Python 3 (tested on 3.7) and NOT Python 2.x, third party libraries are in 
-the requirement.txt file
-* How to run unit tests: Install PyCharm IDE and configure paths to resolve dependencies within each project. Once 
-this is done you should be able to run the unit tests in PyCharm.
+* Requires Python 3.9+. uv manages the environment automatically — no manual venv or conda setup needed.
+* To run unit tests: `uv run python -m pytest tests/`
 
 To see help from the command line run the command
 
@@ -83,13 +80,27 @@ the comparisons are made between files with same {condition, studentId, session}
 
 ### Examples
 
-Ex1) Similarity based on trigrams. `$ SimilarityAnalysis.bat`
+There are two comparison approaches, each available in trigram and unigram variants.
 
-`$ python "src\SimilarityAnalysis.py" -t trigram -d "sample_data" --begin-line 7 > "result.csv"`
+**Approach 1 — Between performances** (default): compares each student's performances against each other.
 
-Ex2) Similarity based on words (unigrams). `SimilarityAnalysisUnigram.bat`
+Ex1a) Trigram similarity between performances. (`SimilarityAnalysis.bat` / `run_similarity.sh`)
 
-`$ python "src\SimilarityAnalysis.py" -t unigram -d "sample_data_unigram" --begin-line 7 > "result_unigram.csv"`
+    uv run python src/SimilarityAnalysis.py -t trigram -d input/sample_data --begin-line 7 -oname result.csv
+
+Ex1b) Unigram similarity between performances. (`SimilarityAnalysisUnigram.bat` / `run_similarity_unigram.sh`)
+
+    uv run python src/SimilarityAnalysis.py -t unigram -d input/sample_data_unigram --begin-line 7 -oname result_unigram.csv
+
+**Approach 2 — Compare to source text**: compares each performance against a single source/model text file.
+
+Ex2a) Trigram similarity against a source text.
+
+    uv run python src/SimilarityAnalysis.py -t trigram -d input/sample_data --begin-line 7 --compare-to-source True -s path/to/source.txt -oname result_source.csv
+
+Ex2b) Unigram similarity against a source text.
+
+    uv run python src/SimilarityAnalysis.py -t unigram -d input/sample_data_unigram --begin-line 7 --compare-to-source True -s path/to/source.txt -oname result_source_unigram.csv
 
 ### Documentation of SimilarityAnalysis
 

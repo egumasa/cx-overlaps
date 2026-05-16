@@ -12,7 +12,7 @@ class DefaultHelpParser(argparse.ArgumentParser):
 
 def Run():
     descr = """Compute Jaccard and Cosine similarities of tokens in a text like trigrams of words.
-    E.g., SimilarityAnalysis -t trigram -d "C:\pos"
+    E.g., SimilarityAnalysis -t trigram -d "C:/pos"
     """
     parser = DefaultHelpParser(description=descr)
     parser.add_argument(
@@ -64,7 +64,8 @@ def Run():
                         "-oname",
                         dest="outName",
                         type=str,
-                        help="This is outputname")
+                        default="output.csv",
+                        help="Output CSV filename. Defaults to output.csv")
 
     args = parser.parse_args()
     extension = ".cex"  # default
@@ -133,13 +134,18 @@ def Run():
     with open(outputName, 'w') as outf:
         outf.write("Condition,StudentId,Session,Measure,Score\n")
         for studentKey, similarities in similaritiesPerStudent.items():
-            condition, studentId, session = studentKey.split("_")
-            for measure_session, value in similarities.items():
-                measure, ses_id = measure_session.split("_")
+            key_parts = studentKey.split("_")
+            condition = key_parts[0]
+            studentId = key_parts[1]
+            for measure_key, value in similarities.items():
+                # measure_key format: "MeasureName_session1_session2"
+                parts = measure_key.split("_")
+                measure = parts[0]
+                session_pair = "_".join(parts[1:])
                 outf.write(",".join([
                     str(condition),
                     str(studentId),
-                    str(session),
+                    str(session_pair),
                     str(measure),
                     str(value)
                 ]))

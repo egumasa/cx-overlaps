@@ -1,0 +1,23 @@
+[project]
+name = "cx-overlaps"
+version = "0.1.0"
+description = "Construction overlap similarity analysis using Jaccard and Cosine metrics"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "nltk",
+    "numpy",
+    "spacy[transformers]",
+    "corpus-toolkit",
+    "streamlit",
+    "en-core-web-trf",
+]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+en-core-web-trf = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_trf-3.8.0/en_core_web_trf-3.8.0-py3-none-any.whl" }
