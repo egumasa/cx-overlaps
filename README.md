@@ -8,15 +8,6 @@ This is an extended fork of a prior fluencysimilarity repository. Extensions ove
 2. **Extraction pipeline** — `cx-extraction.py` converts raw `.txt` transcripts to `.cex` frequency files via a spaCy NLP pipeline.
 3. **Project-folder workflow** — self-contained project directories with a `config.yaml` that drives both pipeline steps.
 
-## Publications
-
-Original code:
-
-- [Author(s) blinded for review]. (2018). Grammatical structures and oral fluency in immediate task repetition: Trigrams across repeated performances. In M. Bygate (Ed.), *Task-Based Language Teaching* (Vol. 11, pp. 43–73). John Benjamins.
-
-Extended use:
-
-- [Author(s) blinded for review]. (2022). Does the Reuse of Constructions Promote Fluency Development in Task Repetition? A Usage-Based Perspective. *TESOL Quarterly*.
 
 ## Setup
 
