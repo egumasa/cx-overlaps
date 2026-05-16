@@ -133,6 +133,9 @@ if __name__ == "__main__":
     trigram_dir = _resolve(args.trigramDir, 'trigram_directory', 'input/trigram')
     unigram_dir = _resolve(args.unigramDir, 'unigram_directory', 'input/unigram')
 
+    os.makedirs(trigram_dir, exist_ok=True)
+    os.makedirs(unigram_dir, exist_ok=True)
+
     files = sorted(glob.glob(os.path.join(rawtext_dir, '*.txt')))
     print(f"Found {len(files)} files in {rawtext_dir}.")
     for i, file in enumerate(files):

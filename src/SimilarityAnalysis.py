@@ -106,10 +106,15 @@ def Run():
     outputDirectory        = _resolve(_pick(args.outputDirectory, None,        'output_directory', None), project_dir)
     outputName             = _resolve(_pick(args.outName,         'output.csv','output_name',       'output.csv'), project_dir)
 
-    # In project mode, derive input directory from analysis_type unless -d was given
+    # In project mode, derive input directory from analysis_type unless -d was given.
+    # input_directory in config overrides trigram_directory/unigram_directory when set.
     if project_dir is not None and args.directoryOfTexts is None:
-        yaml_key = 'trigram_directory' if analysisType == 'trigram' else 'unigram_directory'
-        raw_input = yaml_config.get(yaml_key) or yaml_config.get('input_directory')
+        explicit = yaml_config.get('input_directory')
+        if explicit:
+            raw_input = explicit
+        else:
+            yaml_key = 'trigram_directory' if analysisType == 'trigram' else 'unigram_directory'
+            raw_input = yaml_config.get(yaml_key)
     else:
         raw_input = args.directoryOfTexts
     directoryOfTexts = _resolve(raw_input, project_dir)
