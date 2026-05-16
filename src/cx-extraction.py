@@ -3,18 +3,19 @@
 '''
 This program extracts constructions for overlap calculation.
 '''
-import ntpath
+import argparse
 import glob
+import ntpath
 import os
 import re
+import yaml
+from pathlib import Path
+
 import spacy
 
 __author__ = 'Masaki Eguchi'
 
 nlp = spacy.load("en_core_web_trf")
-
-TRIGRAM_DIR = 'input/trigram/'
-UNIGRAM_DIR = 'input/unigram/'
 
 
 def preprocess(text):
@@ -103,10 +104,39 @@ def text_to_ngrams(filename, length, output_dir):
 
 
 if __name__ == "__main__":
-    files = sorted(glob.glob('input/rawtexts/*.txt'))
-    print(f"Found {len(files)} files.")
+    parser = argparse.ArgumentParser(description="Extract trigram/unigram .cex files from raw transcripts.")
+    parser.add_argument('--project', '-p', dest='projectDir', default=None,
+                        help='Path to a project folder containing config.yaml.')
+    parser.add_argument('--input-dir', dest='rawtextDir', default=None,
+                        help='Directory of raw .txt transcript files.')
+    parser.add_argument('--trigram-dir', dest='trigramDir', default=None,
+                        help='Output directory for trigram .cex files.')
+    parser.add_argument('--unigram-dir', dest='unigramDir', default=None,
+                        help='Output directory for unigram .cex files.')
+    args = parser.parse_args()
+
+    project_dir = None
+    yaml_config = {}
+    if args.projectDir:
+        project_dir = Path(args.projectDir).resolve()
+        config_path = project_dir / 'config.yaml'
+        if config_path.exists():
+            with open(config_path) as f:
+                yaml_config = yaml.safe_load(f) or {}
+
+    def _resolve(cli_val, yaml_key, fallback):
+        raw = cli_val or yaml_config.get(yaml_key) or fallback
+        p = Path(raw)
+        return str(project_dir / p) if project_dir and not p.is_absolute() else str(p)
+
+    rawtext_dir = _resolve(args.rawtextDir, 'rawtext_directory', 'input/rawtexts')
+    trigram_dir = _resolve(args.trigramDir, 'trigram_directory', 'input/trigram')
+    unigram_dir = _resolve(args.unigramDir, 'unigram_directory', 'input/unigram')
+
+    files = sorted(glob.glob(os.path.join(rawtext_dir, '*.txt')))
+    print(f"Found {len(files)} files in {rawtext_dir}.")
     for i, file in enumerate(files):
         print(f"[{i+1}/{len(files)}] {file}")
-        text_to_ngrams(file, length=3, output_dir=TRIGRAM_DIR)
-        text_to_ngrams(file, length=1, output_dir=UNIGRAM_DIR)
+        text_to_ngrams(file, length=3, output_dir=trigram_dir)
+        text_to_ngrams(file, length=1, output_dir=unigram_dir)
     print("Done.")

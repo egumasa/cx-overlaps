@@ -78,7 +78,59 @@ Note that we use the convention tbat the "." means the end and beginning of a se
 "abc" flag is set in which
 the comparisons are made between files with same {condition, studentId, session}.
 
-### Examples
+## Project-based workflow (recommended)
+
+The easiest way to run an analysis is with a **project folder**. Each project is self-contained:
+
+```
+project/
+  PROJECT1/
+    config.yaml          ← all settings
+    input/               ← drop raw .txt transcripts here
+    intermediate/        ← .cex files generated automatically
+      trigram/
+      unigram/
+    output/              ← result CSV written here
+```
+
+**Steps:**
+
+1. Copy or create a project folder (use `project/PROJECT1` as a template).
+2. Edit `project/PROJECT1/config.yaml` to set `analysis_type`, `begin_line`, and other options.
+3. Drop your raw `.txt` transcript files into `project/PROJECT1/input/`.
+4. Run the full pipeline:
+
+```bash
+bash run_project.sh project/PROJECT1
+```
+
+This runs extraction (`.txt` → `.cex`) then similarity analysis (`.cex` → `output/result.csv`) in one step.
+
+**`config.yaml` reference:**
+
+```yaml
+# Extraction settings
+rawtext_directory: input          # where raw .txt transcripts live
+trigram_directory: intermediate/trigram
+unigram_directory: intermediate/unigram
+
+# Analysis settings
+analysis_type: trigram            # trigram or unigram
+begin_line: 6                     # header lines to skip in .cex files
+output_name: output/result.csv
+
+# Optional
+output_directory: null            # directory for token-intersection files
+source_text_path: null            # source text for compare-to-source mode
+compare_abc: false
+use_semi_colon_delimiters: false
+```
+
+CLI flags (e.g. `-t unigram`) passed alongside `--project` override the config file.
+
+---
+
+### Examples (manual / legacy CLI)
 
 There are two comparison approaches, each available in trigram and unigram variants.
 

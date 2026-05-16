@@ -1,4 +1,6 @@
 import sys, argparse
+import yaml
+from pathlib import Path
 from IRSystem import IRSystem
 from BaseFreqDictReader import TrigramFreqDictReader, UnigramFreqDictReader
 
@@ -25,7 +27,8 @@ def Run():
                         '-d',
                         dest="directoryOfTexts",
                         help='the directory path containing the input files.',
-                        required=True)
+                        required=False,
+                        default=None)
     parser.add_argument('--use-semi-colon-delimiters',
                         dest='useSemiColonDelimiters',
                         action='store_true')
@@ -66,19 +69,61 @@ def Run():
                         type=str,
                         default="output.csv",
                         help="Output CSV filename. Defaults to output.csv")
+    parser.add_argument('--project', '-p', dest='projectDir', type=str, default=None,
+                        help='Path to a project folder containing config.yaml.')
 
     args = parser.parse_args()
-    extension = ".cex"  # default
-    analysisType = args.analysisType
-    directoryOfTexts = args.directoryOfTexts  # C:\temp\*.txt
-    useSemiColonDelimiters = args.useSemiColonDelimiters
-    outputDirectory = args.outputDirectory
-    compare_abc = args.compare_abc
-    begin_line = args.begin_line
-    compare_to_source = args.compSource  # Added on May 27, 2022
-    sourceFilePath = args.sourcePath  # Added on May 27, 2022
-    outputName = args.outName  # Added on May 27, 2022
 
+    # Load config.yaml when --project is given
+    project_dir = None
+    yaml_config = {}
+    if args.projectDir is not None:
+        project_dir = Path(args.projectDir).resolve()
+        config_path = project_dir / 'config.yaml'
+        if not config_path.exists():
+            parser.error(f"config.yaml not found in: {project_dir}")
+        with open(config_path) as f:
+            yaml_config = yaml.safe_load(f) or {}
+
+    def _pick(cli_val, cli_default, yaml_key, fallback):
+        if cli_val != cli_default:
+            return cli_val
+        v = yaml_config.get(yaml_key)
+        return v if v is not None else fallback
+
+    def _resolve(raw, base):
+        if raw is None:
+            return None
+        p = Path(raw)
+        return str(base / p) if base and not p.is_absolute() else str(p)
+
+    analysisType           = _pick(args.analysisType, True,  'analysis_type',            'unigram')
+    begin_line             = _pick(args.begin_line,   None,  'begin_line',                None)
+    useSemiColonDelimiters = _pick(args.useSemiColonDelimiters, False, 'use_semi_colon_delimiters', False)
+    compare_abc            = _pick(args.compare_abc,  False, 'compare_abc',               False)
+    compare_to_source      = _pick(args.compSource, False, 'compare_to_source', False)
+    sourceFilePath         = _resolve(_pick(args.sourcePath,      None,        'source_text_path', None), project_dir)
+    outputDirectory        = _resolve(_pick(args.outputDirectory, None,        'output_directory', None), project_dir)
+    outputName             = _resolve(_pick(args.outName,         'output.csv','output_name',       'output.csv'), project_dir)
+
+    # In project mode, derive input directory from analysis_type unless -d was given
+    if project_dir is not None and args.directoryOfTexts is None:
+        yaml_key = 'trigram_directory' if analysisType == 'trigram' else 'unigram_directory'
+        raw_input = yaml_config.get(yaml_key) or yaml_config.get('input_directory')
+    else:
+        raw_input = args.directoryOfTexts
+    directoryOfTexts = _resolve(raw_input, project_dir)
+
+    if directoryOfTexts is None:
+        parser.error("--directory / -d is required (or set trigram_directory/unigram_directory in config.yaml)")
+
+    # Auto-create output directories in project mode
+    if project_dir is not None:
+        Path(outputName).parent.mkdir(parents=True, exist_ok=True)
+        if outputDirectory:
+            Path(outputDirectory).mkdir(parents=True, exist_ok=True)
+
+    extension = ".cex"  # default
     pathAsArray = directoryOfTexts.split("*")
     if len(pathAsArray) == 2 and pathAsArray[1].startswith(".") and (
             pathAsArray[0].endswith("\\") or pathAsArray[0].endswith("/")
