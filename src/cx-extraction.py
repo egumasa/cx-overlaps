@@ -82,7 +82,7 @@ def dict_to_cex(freq_dict, output_dir, stem, header):
 def stem_filename(filename):
     """Remove _TextGrid.txt (case-insensitive) or bare .txt extension."""
     s = ntpath.basename(filename)
-    s = re.sub(r'_[Tt]extgrid\.txt$', '', s)
+    s = re.sub(r'_[Tt]ext[Gg]rid\.txt$', '', s)
     if s.endswith('.txt'):
         s = s[:-4]
     return s

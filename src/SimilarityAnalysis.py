@@ -12,7 +12,7 @@ class DefaultHelpParser(argparse.ArgumentParser):
 
 def Run():
     descr = """Compute Jaccard and Cosine similarities of tokens in a text like trigrams of words.
-    E.g., SimilarityAnalysis -t trigram -d "C:\pos"
+    E.g., SimilarityAnalysis -t trigram -d "C:/pos"
     """
     parser = DefaultHelpParser(description=descr)
     parser.add_argument(
@@ -131,7 +131,7 @@ def Run():
 
     # Added on May 27, 2022: New output function
     with open(outputName, 'w') as outf:
-        outf.write("Condition,StudentId,SessionPair,Measure,Score\n")
+        outf.write("Condition,StudentId,Session,Measure,Score\n")
         for studentKey, similarities in similaritiesPerStudent.items():
             key_parts = studentKey.split("_")
             condition = key_parts[0]

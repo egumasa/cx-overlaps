@@ -54,6 +54,9 @@ class IRSystemHelper:
         for filePath in docs.keys():
             if token in docs[filePath]:
                 appearances += 1
+        if appearances == 0:
+            idf[token] = 1.0  # log(1,2)=0, so source-only tokens contribute nothing
+            return idf[token]
         idf[token] = nrOfDocs / appearances
         return idf[token]
 
