@@ -64,7 +64,8 @@ def Run():
                         "-oname",
                         dest="outName",
                         type=str,
-                        help="This is outputname")
+                        default="output.csv",
+                        help="Output CSV filename. Defaults to output.csv")
 
     args = parser.parse_args()
     extension = ".cex"  # default
