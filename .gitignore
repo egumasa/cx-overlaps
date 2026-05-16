@@ -1,5 +1,8 @@
 .DS_Store
+**/.DS_Store
+**/__pycache__/
 sample_rawtexts
+sourceText/
 input/trigram/*
 input/trigram_POS/*
 rawtexts/*
